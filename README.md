@@ -78,7 +78,7 @@ RecruitmentAgent is a **production-grade multi-agent AI system** that emulates a
 
 > A full walkthrough of the RecruitmentAgent platform — resume upload & analysis, job search, interview preparation, and saved jobs.
 
-<video src=https://github.com/Aaryav1130/Recruitment-Demo-/blob/main/Final%20demo%20Video.mp4"./demo.mp4" controls width="900"></video>
+<video src="https://raw.githubusercontent.com/Aaryav1130/Recruitment-Demo/main/Final demo Video.mp4" controls width="900"></video>
 
 
 ---
