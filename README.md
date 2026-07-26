@@ -78,7 +78,7 @@ RecruitmentAgent is a **production-grade multi-agent AI system** that emulates a
 
 > A full walkthrough of the RecruitmentAgent platform — resume upload & analysis, job search, interview preparation, and saved jobs.
 
-<video src="https://raw.githubusercontent.com/Aaryav1130/Recruitment-Demo/main/Final demo Video.mp4" controls width="900"></video>
+<video src="https://github.com/user-attachments/assets/e48bc30c-c5f0-412a-bd4d-09948a28d609" controls width="900"></video>
 
 
 ---
@@ -399,15 +399,6 @@ TIER 3 → Platform-specific fallback  Safe mock listings (demo mode) — clearl
   2. Run LLM evaluation on the full conversation
   3. Display: overall score (0–10), per-question scores, strengths, improvements, and hire recommendation
 
-#### 🎥 Live Interview Demo
-
-> Watch the AI avatar interviewer in action — real-time voice, video, transcription, and post-interview evaluation.
-
-<video src="https://github.com/user-attachments/assets/198f8dc9-074b-4d21-93e7-ecc1f015e3ef" controls width="900"></video>
-
-
-> **Can't play inline?** [📥 Download Interview Demo Video](./DEMO/interview_demo.mp4)
-
 ---
 
 ### 💼 Tab 4 — Saved Jobs
@@ -542,16 +533,6 @@ Please follow existing code structure — agents go in `agents/`, utilities in `
 ## 📄 License
 
 Open source — see the repository for license details.
-
----
-
-## 👤 Author
-
-**Rishabh**
-
-- 💻 GitHub: [@Rishabh23-Codes](https://github.com/Rishabh23-Codes)
-- 🔗 LinkedIn: [Rishabh](https://www.linkedin.com/in/rishabh-503315270/)
-- 📧 Email: rishabh23032000@gmail.com
 
 ---
 
