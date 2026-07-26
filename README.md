@@ -81,8 +81,6 @@ RecruitmentAgent is a **production-grade multi-agent AI system** that emulates a
 <video src="https://github.com/user-attachments/assets/e48bc30c-c5f0-412a-bd4d-09948a28d609" controls width="900"></video>
 
 
-> **Can't play inline?** [📥 Download Complete Demo Video](./DEMO/demo_video.mp4)
-
 ---
 
 ## 🛠️ Tech Stack
