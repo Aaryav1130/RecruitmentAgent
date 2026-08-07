@@ -5,8 +5,9 @@
 An end-to-end **AI-driven recruitment automation platform** built with modular agents that handle resume analysis, intelligent job search, and adaptive live interview simulation — all in one seamless pipeline.
 
 ### 🌟 Live Demos
-👉 **Main App (Resume Analysis & Job Search):** [Insert your Streamlit link here]  
-👉 **Live Virtual Interview Portal:** [Insert your Vercel link here]  
+👉 **Main App (Resume Analysis & Job Search):**https://recruitmentagent-ijspeikrzlsn8iw7mxug5s.streamlit.app/
+
+👉 **Live Virtual Interview Portal:**https://recruitment-agent-six.vercel.app
 
 *(Note: The live demo relies on free-tier cloud hosting. If the app is asleep, please wait a few seconds for it to wake up!)*
 
