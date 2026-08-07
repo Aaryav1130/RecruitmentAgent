@@ -1,33 +1,25 @@
 --extra-index-url https://download.pytorch.org/whl/cpu
 
 beautifulsoup4>=4.14.3
-docling>=2.67.0
 faiss-cpu>=1.13.1
 langchain>=1.1.3
 langchain-classic>=1.0.0
 langchain-community>=0.4.1
 langchain-groq>=1.1.1
 langchain-huggingface>=1.2.0
-langchain-ollama>=1.0.1
 langchain-text-splitters>=1.1.0
 matplotlib>=3.10.8
 nltk>=3.9.2
-ollama>=0.6.1
 pypdf2>=3.0.1
 python-docx>=1.2.0
 python-dotenv>=1.2.1
 python-jobspy>=1.1.82
 requests>=2.32.5
 sentence-transformers>=5.2.0
-spacy>=3.8.11
 streamlit>=1.52.1
-mem0ai>=1.0.1
 sqlalchemy>=2.0.0
 streamlit-authenticator>=0.4.1
 pyyaml>=6.0.0
 bcrypt>=4.0.0
 numpy>=2.1.0
-
-# Force PyTorch CPU version to prevent Out-Of-Memory errors on Streamlit Cloud
-torch
-torchvision
+torch --extra-index-url https://download.pytorch.org/whl/cpu
