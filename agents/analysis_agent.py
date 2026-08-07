@@ -12,8 +12,8 @@ import json
 import time
 from config import GROQ_API_KEY,LLM_MODEL
 import docx
-from docling.document_converter import DocumentConverter
-# from langchain_ollama.chat_models import ChatOllama
+import tempfile
+import PyPDF2
 from ui_utils import role_requirements as require
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
@@ -72,28 +72,20 @@ class ResumeAnalysisAgent:
     #         print(f"Error extracting text from PDF: {e}")
     #         return ""
     def extract_text_from_pdf(self, pdf_file):
-        """Extract text from a PDF file using Docling"""
+        """Extract text from a PDF file"""
         try:
-            converter = DocumentConverter()
-
-            
-            # Create a temporary file
-            with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as temp_file:
-                # Write the PDF content to the temp file
-                if hasattr(pdf_file, "getvalue"):
-                    temp_file.write(pdf_file.getvalue())
-                else:
-                    # In case pdf_file is already bytes
-                    temp_file.write(pdf_file)
-                temp_path = temp_file.name
-            
-            # Convert the PDF to text
-            result = converter.convert(temp_path).document
-            response=result.export_to_text()
-            return response
-
+            if hasattr(pdf_file, 'getvalue'):
+                # Streamlit UploadedFile
+                reader = PyPDF2.PdfReader(pdf_file)
+            else:
+                # File path or normal file object
+                reader = PyPDF2.PdfReader(pdf_file)
+            text = ""
+            for page in reader.pages:
+                text += page.extract_text()
+            return text
         except Exception as e:
-            print(f"Error extracting text from PDF with Docling: {e}")
+            print(f"Error extracting text from PDF: {e}")
             return ""
         
     def extract_text_from_docx(self,docx_file):
