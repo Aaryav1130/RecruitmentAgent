@@ -8,18 +8,38 @@ const LiveKitModal = ({ setShowSupport }) => {
     const [name, setName] = useState("");
     const [token, setToken] = useState(null);
     const [isConnected, setIsConnected] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const [preJoinOptions, setPreJoinOptions] = useState(null);
 
     const getToken = useCallback(async (userName) => {
+        setIsLoading(true);
         try {
             const response = await fetch(
                 `/api/getToken?name=${encodeURIComponent(userName)}`
             );
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error("Backend error:", errorText);
+                alert("Failed to connect to the backend server. Please ensure the Flask Token Server (Terminal 2) is running and your LiveKit API keys are correct in the .env file.");
+                setIsLoading(false);
+                return;
+            }
             const tokenData = await response.text();
+            
+            // Check if tokenData is a valid JWT (should not be HTML)
+            if (tokenData.includes("<!DOCTYPE") || tokenData.includes("<html")) {
+                alert("Received invalid token from server. The backend might have crashed or returned an error page.");
+                setIsLoading(false);
+                return;
+            }
+            
             setToken(tokenData);
             setIsSubmittingName(false);
+            setIsLoading(false);
         } catch (error) {
             console.error("Error fetching token:", error);
+            alert("Error fetching token. Is the Vite proxy running correctly?");
+            setIsLoading(false);
         }
     }, []);
 
@@ -40,6 +60,7 @@ const LiveKitModal = ({ setShowSupport }) => {
         setShowSupport(false);
         setIsSubmittingName(true);
         setIsConnected(false);
+        setIsLoading(false);
         setToken(null);
         setName("");
         setPreJoinOptions(null);
@@ -49,7 +70,7 @@ const LiveKitModal = ({ setShowSupport }) => {
         <div className="modal-overlay">
             <div className="modal-content interview-modal">
                 <div className="support-room">
-                    {isSubmittingName ? (
+                    {isSubmittingName && !isLoading ? (
                         <form onSubmit={handleNameSubmit} className="name-form">
                             <h2>Welcome to Your Interview</h2>
                             <div className="form-warning">
@@ -76,6 +97,11 @@ const LiveKitModal = ({ setShowSupport }) => {
                                 </button>
                             </div>
                         </form>
+                    ) : isLoading ? (
+                        <div className="loading-screen">
+                            <div className="spinner"></div>
+                            <p>Connecting to interview room...</p>
+                        </div>
                     ) : token && !isConnected ? (
                         // PreJoin is independent and outside LiveKitRoom
                         <PreJoin
