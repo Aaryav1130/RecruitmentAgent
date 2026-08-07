@@ -212,7 +212,7 @@ sudo tlmgr install xelatex collection-fontsrecommended
 ### 1️⃣ Clone the Repository
 
 ```bash
-git clone https://github.com/Rishabh23-Codes/RecruitmentAgent.git
+git clone https://github.com/Aaryav1130/RecruitmentAgent.git
 cd RecruitmentAgent
 ```
 
@@ -461,7 +461,7 @@ TIER 3 → Platform-specific fallback  Safe mock listings (demo mode) — clearl
 
 **Token generation example:**
 ```
-GET /getToken?name=Rishabh&room=room-abc123
+GET /getToken?name=Aaryav&room=room-abc123
 ```
 
 ### Vite Dev Server Proxy
