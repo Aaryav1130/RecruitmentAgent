@@ -26,7 +26,6 @@ dependencies = [
     "streamlit-authenticator>=0.4.1",
     "pyyaml>=6.0.0",
     "bcrypt>=4.0.0",
-    "numpy>=2.1.0",
 ]
 
 [project.optional-dependencies]
@@ -56,6 +55,3 @@ dev = [
 ]
 
 [tool.uv]
-override-dependencies = [
-    "numpy>=2.1.0"
-]
