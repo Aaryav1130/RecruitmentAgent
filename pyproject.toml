@@ -3,7 +3,7 @@ name = "automate-job-searching-agent"
 version = "0.1.0"
 description = "AI-powered recruitment agent with resume analysis, job search, and live interviews"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 dependencies = [
     "beautifulsoup4>=4.14.3",
     "faiss-cpu>=1.13.1",
