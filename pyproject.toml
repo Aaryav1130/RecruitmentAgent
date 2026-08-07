@@ -1,7 +1,7 @@
 [project]
 name = "automate-job-searching-agent"
 version = "0.1.0"
-description = "Add your description here"
+description = "AI-powered recruitment agent with resume analysis, job search, and live interviews"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
@@ -12,22 +12,29 @@ dependencies = [
     "langchain-community>=0.4.1",
     "langchain-groq>=1.1.1",
     "langchain-huggingface>=1.2.0",
-    "langchain-ollama>=1.0.1",
     "langchain-text-splitters>=1.1.0",
     "matplotlib>=3.10.8",
     "nltk>=3.9.2",
-    "ollama>=0.6.1",
     "pypdf2>=3.0.1",
     "python-docx>=1.2.0",
     "python-dotenv>=1.2.1",
     "python-jobspy>=1.1.82",
     "requests>=2.32.5",
     "sentence-transformers>=5.2.0",
-    "spacy>=3.8.11",
     "streamlit>=1.52.1",
+    "sqlalchemy>=2.0.0",
+    "streamlit-authenticator>=0.4.1",
+    "pyyaml>=6.0.0",
+    "bcrypt>=4.0.0",
+    "numpy>=2.1.0",
+]
+
+[project.optional-dependencies]
+# Backend deps (Flask + LiveKit) — NOT needed on Streamlit Cloud
+backend = [
     "flask-cors>=6.0.2",
     "flask[async]>=3.1.2",
-    "langchain-community>=0.4.1",
+    "langchain-ollama>=1.0.1",
     "livekit-agents[bey]~=1.3",
     "livekit-api>=1.1.0",
     "livekit-plugins-google>=1.3.6",
@@ -38,14 +45,10 @@ dependencies = [
     "mem0ai>=1.0.1",
     "openai-whisper>=20250625",
     "uvicorn>=0.40.0",
-    "sqlalchemy>=2.0.0",
-    "streamlit-authenticator>=0.4.1",
-    "pyyaml>=6.0.0",
-    "bcrypt>=4.0.0",
     "gunicorn>=21.2.0",
+    "ollama>=0.6.1",
+    "spacy>=3.8.11",
 ]
-
-[project.optional-dependencies]
 dev = [
     "pytest>=8.0.0",
     "pytest-asyncio>=0.24.0",
@@ -56,5 +59,3 @@ dev = [
 override-dependencies = [
     "numpy>=2.1.0"
 ]
-
-
