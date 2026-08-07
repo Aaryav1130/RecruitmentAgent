@@ -9,5 +9,21 @@ wheels/
 # Virtual environments
 .venv
 
-
+# Environment variables
 .env
+
+# Database
+*.db
+recruitment_agent.db
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+
+# Test
+.pytest_cache/
+htmlcov/
+.coverage

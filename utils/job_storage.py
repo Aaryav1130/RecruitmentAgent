@@ -2,86 +2,119 @@ import os
 import json
 from datetime import datetime
 
-# create directory for saved jobs
-os.makedirs("saved_jobs",exist_ok=True)
+# create directory for saved jobs (kept for backward compatibility)
+os.makedirs("saved_jobs", exist_ok=True)
+
+# ━━━ Try to import database module ━━━
+try:
+    from utils.database import db_save_job, db_get_all_saved_jobs, db_remove_saved_job, create_tables
+    create_tables()
+    USE_DATABASE = True
+except ImportError:
+    USE_DATABASE = False
+    print("Warning: Database module not available. Using JSON file storage as fallback.")
+
 
 class DateTimeEncoder(json.JSONEncoder):
     """Custom JSON encoder for datetime objects."""
-    def default(self,obj):
-        if isinstance(obj,datetime):
+    def default(self, obj):
+        if isinstance(obj, datetime):
             return obj.strftime("%Y-%m-%d %H:%M:%S")
         return super().default(obj)
-    
+
+
 def save_jobs_to_local(job_data):
-    """Save job data to a local JSON file with proper datetime handling.
+    """Save job data to database (primary) or local JSON file (fallback).
     
     Args:
         job_data (dict): The job data to save
         
     Returns:
-        str: Path to the saved file"""
-    
-    #Generate a unique filename based on job title,company and timestamp
-    job_id=f"{job_data['title'].replace(' ','_')}_{job_data['company'].replace(' ','_')}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
-    file_path=os.path.join("saved_jobs",f"{job_id}.json")
+        str: Path to the saved file or database ID
+    """
+    # ━━━ Database storage (primary) ━━━
+    if USE_DATABASE:
+        try:
+            job_id = db_save_job(job_data)
+            return f"db:{job_id}"
+        except Exception as e:
+            print(f"Database save failed, falling back to JSON: {e}")
 
-    #Add timestamp
-    job_data["date_saved"]=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    # ━━━ JSON file storage (fallback) ━━━
+    # Generate a unique filename based on job title, company and timestamp
+    job_id = f"{job_data['title'].replace(' ', '_')}_{job_data['company'].replace(' ', '_')}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+    file_path = os.path.join("saved_jobs", f"{job_id}.json")
+
+    # Add timestamp
+    job_data["date_saved"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     # Create a copy of job_data to avoid modifying the original
-    job_data_copy=job_data.copy()
+    job_data_copy = job_data.copy()
 
     # Process the dictionary to convert datetime objects to strings
-    for key,value in job_data_copy.items():
-        if isinstance(value,datetime):
-            job_data_copy[key]=value.strftime("%Y-%m-%d %H:%M:%S")
-        elif isinstance(value,dict):
-            # Handle nested dictionaies
+    for key, value in job_data_copy.items():
+        if isinstance(value, datetime):
+            job_data_copy[key] = value.strftime("%Y-%m-%d %H:%M:%S")
+        elif isinstance(value, dict):
+            # Handle nested dictionaries
             process_dict_datetime(value)
 
-     # Save the job data to a JSON file with custom encoder for any missed datetime objects
-    with open(file_path,'w',encoding='utf-8') as f:
-        json.dump(job_data_copy,f,indent=4,cls=DateTimeEncoder)
+    # Save the job data to a JSON file with custom encoder for any missed datetime objects
+    with open(file_path, 'w', encoding='utf-8') as f:
+        json.dump(job_data_copy, f, indent=4, cls=DateTimeEncoder)
     return file_path
+
 
 def process_dict_datetime(d):
     """Process a dictionary to convert all datetime objects to strings."""
-    for key,value in list(d.items()): # Use list to avoid dictionary size change during iteration
+    for key, value in list(d.items()):  # Use list to avoid dictionary size change during iteration
         if isinstance(value, datetime):
-            d[key]=value.strftime("%Y-%m-%d %H:%M:%S")
-        elif isinstance(value,dict):
+            d[key] = value.strftime("%Y-%m-%d %H:%M:%S")
+        elif isinstance(value, dict):
             process_dict_datetime(value)
-        elif isinstance(value,list):
-            for i,item in enumerate(value):
-                if isinstance(item,datetime):
-                    value[i]=item.strftime("%Y-%m-%d %H:%M:%S")
-                elif isinstance(item,dict):
+        elif isinstance(value, list):
+            for i, item in enumerate(value):
+                if isinstance(item, datetime):
+                    value[i] = item.strftime("%Y-%m-%d %H:%M:%S")
+                elif isinstance(item, dict):
                     process_dict_datetime(item)
 
+
 def load_saved_jobs():
-    """Load all saved jobs from local storage with error handling.
+    """Load all saved jobs from database (primary) or local storage (fallback).
     
     Returns:
         list: List of job dictionaries
     """
-    saved_jobs=[]
+    # ━━━ Database storage (primary) ━━━
+    if USE_DATABASE:
+        try:
+            db_jobs = db_get_all_saved_jobs()
+            if db_jobs:
+                return db_jobs
+        except Exception as e:
+            print(f"Database load failed, falling back to JSON: {e}")
+
+    # ━━━ JSON file storage (fallback) ━━━
+    saved_jobs = []
 
     if not os.path.exists("saved_jobs"):
         return saved_jobs
 
     for file_name in os.listdir("saved_jobs"):
         if file_name.endswith(".json"):
-            file_path=os.path.join("saved_jobs",file_name)
+            file_path = os.path.join("saved_jobs", file_name)
             try:
-                with open(file_path,'r',encoding='utf-8') as f:
-                    job_data=json.load(f)
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    job_data = json.load(f)
                     saved_jobs.append(job_data)
             except Exception as e:
                 print(f"Error loading job file {file_name}: {e}")
     return saved_jobs
 
-def remove_saved_job(job_title,job_company):
-    """Remove a saved job from local storage.
+
+def remove_saved_job(job_title, job_company):
+    """Remove a saved job from database (primary) or local storage (fallback).
     
     Args:
         job_title (str): Title of the job to remove
@@ -90,16 +123,27 @@ def remove_saved_job(job_title,job_company):
     Returns:
         bool: True if the job was successfully removed, False otherwise
     """
+    # ━━━ Database storage (primary) ━━━
+    if USE_DATABASE:
+        try:
+            result = db_remove_saved_job(job_title, job_company)
+            if result:
+                return True
+        except Exception as e:
+            print(f"Database remove failed, falling back to JSON: {e}")
 
+    # ━━━ JSON file storage (fallback) ━━━
     for file_name in os.listdir("saved_jobs"):
         if file_name.endswith(".json"):
-            file_path=os.path.join("saved_jobs",file_name)
+            file_path = os.path.join("saved_jobs", file_name)
             try:
-                with open(file_path,'r',encoding='utf-8') as f:
-                    job_data=json.load(f)
-                if job_data.get("title")==job_title and job_data.get("company")==job_company:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    job_data = json.load(f)
+                if job_data.get("title") == job_title and job_data.get("company") == job_company:
                     os.remove(file_path)
                     return True
             except Exception as e:
                 print(f"Error processing job file {file_name}: {e}")
-        return False
+    # BUG FIX: This return was previously inside the for loop (wrong indentation),
+    # causing it to return False after checking only the first file.
+    return False
