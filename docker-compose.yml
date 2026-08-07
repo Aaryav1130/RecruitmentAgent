@@ -1,0 +1,41 @@
+services:
+  streamlit:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8501:8501"
+    env_file:
+      - .env
+    depends_on:
+      - flask-server
+
+  flask-server:
+    build:
+      context: .
+      dockerfile: Interview/Dockerfile
+    ports:
+      - "5001:5001"
+    env_file:
+      - .env
+
+  livekit-agent:
+    build:
+      context: .
+      dockerfile: Interview/Dockerfile
+    command: ["uv", "run", "python", "agent_runner.py", "dev"]
+    env_file:
+      - .env
+    depends_on:
+      - flask-server
+
+  react-frontend:
+    build:
+      context: ./Interview/frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    depends_on:
+      - flask-server
+    environment:
+      - VITE_LIVEKIT_SERVER_URL=http://flask-server:5001
