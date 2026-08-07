@@ -39,9 +39,22 @@ dependencies = [
     "mem0ai>=1.0.1",
     "openai-whisper>=20250625",
     "uvicorn>=0.40.0",
+    "sqlalchemy>=2.0.0",
+    "streamlit-authenticator>=0.4.1",
+    "pyyaml>=6.0.0",
+    "bcrypt>=4.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=6.0.0",
 ]
 
 [tool.uv]
 override-dependencies = [
     "numpy>=2.1.0"
 ]
+
+

@@ -1,0 +1,21 @@
+credentials:
+  usernames:
+    demo:
+      email: demo@recruitmentagent.com
+      name: Demo User
+      # Password: "demo123" (bcrypt hashed)
+      password: $2b$12$LJ3dxM5R5z5C5z5C5z5COeYJ5KJF5KJF5KJF5KJF5KJF5KJF5KJF5K
+    admin:
+      email: admin@recruitmentagent.com
+      name: Admin
+      # Password: "admin123" (bcrypt hashed)
+      password: $2b$12$LJ3dxM5R5z5C5z5C5z5COeYJ5KJF5KJF5KJF5KJF5KJF5KJF5KJF5K
+
+cookie:
+  expiry_days: 30
+  key: recruitment_agent_secret_cookie_key_2025
+  name: recruitment_agent_auth
+
+pre-authorized:
+  emails:
+    - demo@recruitmentagent.com

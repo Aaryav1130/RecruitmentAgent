@@ -3,6 +3,7 @@ import pandas as pd
 import os
 import json
 import tempfile
+import shutil
 import PyPDF2
 import docx
 from datetime import datetime,timedelta
@@ -15,6 +16,8 @@ import uuid
 from concurrent.futures import ThreadPoolExecutor
 import requests
 import streamlit.components.v1 as components
+import yaml
+import streamlit_authenticator as stauth
 
 # --------------------------------------------------
 # Thread executor (global)
@@ -26,8 +29,8 @@ executor = ThreadPoolExecutor(max_workers=2)
 
 def render_latex_to_pdf(latex_code):
         try:
-            # Define the path to your LaTeX compiler (xelatex or any other compiler)
-            xelatex_path = "/usr/local/texlive/2025basic/bin/universal-darwin/xelatex"  # Adjust this path accordingly
+            # Define the path to your LaTeX compiler (cross-platform)
+            xelatex_path = shutil.which("xelatex") or "xelatex"
             
             # Create a temporary directory to store LaTeX file and PDF output
             with tempfile.TemporaryDirectory() as tmpdirname:
@@ -74,6 +77,13 @@ def render_latex_to_pdf(latex_code):
 os.makedirs("agents", exist_ok=True)
 os.makedirs("utils", exist_ok=True)
 os.makedirs("saved_jobs", exist_ok=True)
+
+# Initialize database
+try:
+    from utils.database import create_tables
+    create_tables()
+except Exception as e:
+    print(f"Database initialization skipped: {e}")
 
 # Import the UI utilities for improved display
 from ui_utils import (
@@ -135,7 +145,41 @@ header {visibility: hidden;}
 .block-container { padding-top: 0rem; }
 </style>
 """, unsafe_allow_html=True)
-st.image("Images/5logo.png", width="content")
+
+# ━━━ Authentication Gate ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+_auth_enabled = os.path.exists("auth_config.yaml")
+_authenticated = True  # default: allow access if no auth config
+
+if _auth_enabled:
+    try:
+        with open("auth_config.yaml") as _f:
+            _auth_config = yaml.safe_load(_f)
+        
+        _authenticator = stauth.Authenticate(
+            _auth_config["credentials"],
+            _auth_config["cookie"]["name"],
+            _auth_config["cookie"]["key"],
+            _auth_config["cookie"]["expiry_days"],
+        )
+        _authenticator.login()
+        
+        if st.session_state.get("authentication_status"):
+            _authenticator.logout("Logout", "sidebar")
+            st.sidebar.write(f"Welcome, **{st.session_state.get('name', '')}**")
+            _authenticated = True
+        elif st.session_state.get("authentication_status") is False:
+            st.error("❌ Username/password is incorrect")
+            _authenticated = False
+        elif st.session_state.get("authentication_status") is None:
+            st.info("Please enter your username and password to continue.")
+            st.caption("Demo credentials: username `demo`, password `demo123`")
+            _authenticated = False
+    except Exception as e:
+        st.warning(f"Authentication config error: {e}. Proceeding without auth.")
+        _authenticated = True
+
+if _authenticated:
+    st.image("Images/5logo.png", width="content")
 
 
 # Session state initialization
@@ -1562,3 +1606,5 @@ st.markdown(
     </div>""",
     unsafe_allow_html=True
 )
+
+
