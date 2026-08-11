@@ -2,8 +2,8 @@
 # Install uv if not present
 pip install uv
 
-# Sync dependencies
-uv sync
+# Sync dependencies including backend extras (like gunicorn)
+uv sync --extra backend
 
 # Start the LiveKit agent in the background
 uv run python agent_runner.py dev &
