@@ -236,7 +236,7 @@ Expected JSON Format:
                 skill=",".join(skills)
                 role=None
                 if custom_jd:
-                    jd_text=self.extract_text_from_file(custom_jd)
+                    jd_text=self.extract_text_from_file(custom_jd.name, custom_jd.getvalue())
                     jd_vectorstore=self.create_rag_vector_store(jd_text)
                     retriever=jd_vectorstore.as_retriever(search_kwargs={"k": 3})
                     query="Extract all technical skills, programming languages, frameworks, tools, cloud platforms, databases, and relevant technologies mentioned in this job description. Include both mandatory and optional skills.For example: ['Python', 'JavaScript', 'React.js', 'Node.js', 'SQL', 'Docker', 'AWS', 'Machine Learning', 'LangChain']."
@@ -244,7 +244,7 @@ Expected JSON Format:
                     context_text = "\n".join([doc.page_content for doc in relevant_chunks])[:3000]
                     print(f"✅ JD context: {len(relevant_chunks)} chunks")
                 elif role_requirements:
-                    role = next((key for key, values in require.items() if any(v in values for v in role_requirements)), None)
+                    role = "the selected role"
                     context_text=",".join(role_requirements)
                     print(f"✅ Role requirements: {len(role_requirements)} skills")
 

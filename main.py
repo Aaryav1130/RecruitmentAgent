@@ -273,12 +273,12 @@ with tabs[0]:
         # --------------------------------------------------
         # BACKGROUND PREPROCESSING (ON UPLOAD)
         # --------------------------------------------------
-        if resume_file and st.session_state.active_resume_name != resume_file.name:
+        if resume_file and st.session_state.active_resume_name != resume_file.file_id:
             new_job_id = str(uuid.uuid4())
 
             # Reset state for new upload
             st.session_state.job_id = new_job_id
-            st.session_state.active_resume_name = resume_file.name
+            st.session_state.active_resume_name = resume_file.file_id
             st.session_state.raw_pdf_bytes = resume_file.getvalue()
             st.session_state.preprocess_future = None
             st.session_state.analyze_requested = False

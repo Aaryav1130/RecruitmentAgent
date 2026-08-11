@@ -5,11 +5,47 @@
 An end-to-end **AI-driven recruitment automation platform** built with modular agents that handle resume analysis, intelligent job search, and adaptive live interview simulation — all in one seamless pipeline.
 
 ### 🌟 Live Demos
-👉 **Main App (Resume Analysis & Job Search):**https://recruitmentagent-ijspeikrzlsn8iw7mxug5s.streamlit.app/
+👉 **Main App (Resume Analysis & Job Search):** https://recruitmentagent-ijspeikrzlsn8iw7mxug5s.streamlit.app/
 
-👉 **Live Virtual Interview Portal:**https://recruitment-agent-six.vercel.app
+👉 **Live Virtual Interview Portal:** https://recruitment-agent-six.vercel.app
 
 *(Note: The live demo relies on free-tier cloud hosting. If the app is asleep, please wait a few seconds for it to wake up!)*
+
+---
+
+## 📸 Platform Tour
+
+### 1. Unified Dashboard
+Upload your resume, specify the role, or provide a custom Job Description. The intuitive layout guides you through the process effortlessly.
+<img src="Images/main_dashboard.png" width="800">
+
+### 2. Comprehensive Resume Extraction
+Instantly parses key contact information, education, experience, and accurately extracts specialized technical skills.
+<img src="Images/extracted_info.png" width="800">
+
+### 3. Smart JD Alignment & Scoring
+Leverages semantic similarity to compare your resume against real-world job requirements, generating a definitive ATS score and shortlist status.
+<img src="Images/resume_analysis_score.png" width="800">
+
+### 4. Overall Assessment
+Highlights clear strengths and flags areas needing improvement, ensuring your resume meets industry standards.
+<img src="Images/overall_assessment.png" width="800">
+
+### 5. Detailed Weakness Analysis
+Provides a microscopic breakdown of missing skills, with contextual advice on how to seamlessly integrate them into your experience sections.
+<img src="Images/detailed_weakness.png" width="800">
+
+### 6. Actionable Improvements
+Delivers concrete, bulleted recommendations tailored specifically to your target role to maximize your next ATS scan.
+<img src="Images/resume_improvement.png" width="800">
+
+### 7. Interactive Resume Q&A
+Chat directly with your resume. Ask questions about specific projects, timelines, or skills to instantly retrieve information.
+<img src="Images/resume_qa.png" width="800">
+
+### 8. Intelligent Job Search
+Seamlessly cross-references your profile with live job listings across major platforms like LinkedIn, Indeed, and Glassdoor, allowing you to filter by relevance and recency.
+<img src="Images/job_search.png" width="800">
 
 ---
 

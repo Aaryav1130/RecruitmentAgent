@@ -467,11 +467,8 @@ def display_extracted_information(resume_data,resume_file):
             pdf_bytes = st.session_state.raw_pdf_bytes
             base64_pdf = base64.b64encode(pdf_bytes).decode("utf-8")
 
-            st.markdown(
-                f'<iframe src="data:application/pdf;base64,{base64_pdf}#toolbar=0&navpanes=0" '
-                f'width="100%" height="800"></iframe>',
-                unsafe_allow_html=True
-            )
+            pdf_display = f'<embed src="data:application/pdf;base64,{base64_pdf}#toolbar=0&navpanes=0" width="100%" height="600px" type="application/pdf">'
+            st.markdown(pdf_display, unsafe_allow_html=True)
 
 
 
