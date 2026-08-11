@@ -32,8 +32,21 @@ jobs:
               page = context.new_page()
               
               print('Visiting Streamlit app...')
-              # Using the URL from your UptimeRobot screenshot
               page.goto('https://recruitmentagent-ijspeikrzlsn8iw7mxug5s.streamlit.app/', wait_until='networkidle')
+              
+              # Check if the app is asleep and click the wake up button if present
+              try:
+                  wake_button = page.get_by_text('Yes, get this app back up!')
+                  if wake_button.is_visible(timeout=5000):
+                      print('App is asleep! Clicking the wake up button...')
+                      wake_button.click()
+                      # Wait for the app to actually boot up (can take a minute)
+                      page.wait_for_selector('.stApp', timeout=60000)
+                      print('App successfully woken up!')
+                  else:
+                      print('App is already awake.')
+              except Exception as e:
+                  print('App is already awake (no sleep button found).')
               
               print('Waiting 15 seconds to simulate user activity and websocket connection...')
               time.sleep(15)
