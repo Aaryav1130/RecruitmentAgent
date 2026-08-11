@@ -222,8 +222,9 @@ class ResumeAnalysisAgent:
             return skills, education, experience
 
         except Exception as e:
+            error_msg = f"Error: {str(e)[:100]}"
             print(f"Error extracting skills/education/experience : {e}")
-            return ["Not found"], ["Not found"], ["Not found"]
+            return [error_msg], [error_msg], [error_msg]
     
 
 
@@ -931,6 +932,7 @@ class ResumeAnalysisAgent:
                     - NO placeholders.
                     - NO hallucinated content.
                     - IF A SECTION IS NOT EXPLICITLY PRESENT IN THE RESUME → DELETE IT COMPLETELY.
+                    - YOU MUST ESCAPE ALL LATEX SPECIAL CHARACTERS IN THE USER'S CONTENT: % & $ # _ {{ }} ~ ^ \\
                     """
             try:
                 # Step 1: Invoke LLM with the given prompt
@@ -939,10 +941,20 @@ class ResumeAnalysisAgent:
                 # Step 2: Extract the LaTeX-formatted resume text
                 print("✅ llm response of latex code")
                 improved_resume = response.content.strip() # Remove unnecessary spaces
+                
+                # Strip markdown blocks if present
+                if improved_resume.startswith("```latex"):
+                    improved_resume = improved_resume[8:]
+                elif improved_resume.startswith("```"):
+                    improved_resume = improved_resume[3:]
+                if improved_resume.endswith("```"):
+                    improved_resume = improved_resume[:-3]
+                improved_resume = improved_resume.strip()
+
                 # Step 3: Validate the LaTeX format
                 if not improved_resume.startswith(r"\documentclass") or not improved_resume.endswith(r"\end{document}"):
                     print("❌ Generated content is not in valid LaTeX format")
-                    raise ValueError("Generated content is not in valid LaTeX format.")
+                    raise ValueError("Generated content is not in valid LaTeX format. Please retry.")
 
                 # Step 5: Return the LaTeX resume content
                 print("✅ generate latex code succesfully")
