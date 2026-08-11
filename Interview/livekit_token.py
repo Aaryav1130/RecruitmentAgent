@@ -44,6 +44,10 @@ async def get_rooms():
     return [room.name for room in rooms.rooms]
 
 
+@app.route("/")
+def health_check():
+    return jsonify({"status": "healthy"}), 200
+
 @app.route("/getToken")
 async def get_token():
     global current_room_name
