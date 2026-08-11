@@ -19,15 +19,20 @@ from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 
 
-def safe_llm_invoke(llm, prompt, max_retries=3):
+def safe_llm_invoke(llm, prompt, max_retries=6):
+    sleep_times = [2, 5, 10, 15, 20, 30]
     for attempt in range(max_retries):
         try:
             return llm.invoke(prompt)
         except Exception as e:
             if "rate limit" in str(e).lower() or "429" in str(e):
-                sleep_time = 1 + attempt * 1.5
-                time.sleep(sleep_time)
-                continue
+                if attempt < len(sleep_times):
+                    sleep_time = sleep_times[attempt]
+                    print(f"⚠️ Groq rate limit hit. Retrying in {sleep_time} seconds... (Attempt {attempt+1}/{max_retries})")
+                    time.sleep(sleep_time)
+                    continue
+                else:
+                    raise RuntimeError(f"Groq API rate limit exceeded after {max_retries} retries: {e}")
             raise e
     raise RuntimeError("Groq API failed after multiple retries")
 
@@ -71,15 +76,10 @@ class ResumeAnalysisAgent:
     #     except Exception as e:
     #         print(f"Error extracting text from PDF: {e}")
     #         return ""
-    def extract_text_from_pdf(self, pdf_file):
+    def extract_text_from_pdf(self, raw_bytes):
         """Extract text from a PDF file"""
         try:
-            if hasattr(pdf_file, 'getvalue'):
-                # Streamlit UploadedFile
-                reader = PyPDF2.PdfReader(pdf_file)
-            else:
-                # File path or normal file object
-                reader = PyPDF2.PdfReader(pdf_file)
+            reader = PyPDF2.PdfReader(io.BytesIO(raw_bytes))
             text = ""
             for page in reader.pages:
                 text += page.extract_text()
@@ -88,14 +88,11 @@ class ResumeAnalysisAgent:
             print(f"Error extracting text from PDF: {e}")
             return ""
         
-    def extract_text_from_docx(self,docx_file):
+    def extract_text_from_docx(self, raw_bytes):
         """Extract text from a docx file"""
         try:
-            if hasattr(docx_file, "getvalue"):
-                file_stream = io.BytesIO(docx_file.getvalue())
-                doc = docx.Document(file_stream)
-            else:
-                doc = docx.Document(docx_file)
+            file_stream = io.BytesIO(raw_bytes)
+            doc = docx.Document(file_stream)
             extracted_text = "\n".join([p.text for p in doc.paragraphs])
             return extracted_text
         except Exception as e:
@@ -104,36 +101,29 @@ class ResumeAnalysisAgent:
 
         
 
-    def extract_text_from_txt(self,txt_file):
+    def extract_text_from_txt(self, raw_bytes):
         """Extract text from a text file"""
         try:
-            if hasattr(txt_file,'getvalue'):
-                return txt_file.getvalue().decode('utf-8')
-            else:
-                with open(txt_file,'r',encoding='utf-8') as f:
-                    return f.read()
+            return raw_bytes.decode('utf-8')
         except Exception as e:
             print(f"Error extracting text from text file: {e}")
             return ""
         
 
         
-    def extract_text_from_file(self,file):
-        """Extract text from a file (PDF or TXT)"""
-        if hasattr(file,'name'):
-            file_extension=file.name.split('.')[-1].lower()
-        else:
-            file_extension=file.split('.')[-1].lower()
+    def extract_text_from_file(self, file_name, raw_bytes):
+        """Extract text from a file (PDF or TXT) using raw bytes"""
+        file_extension = file_name.split('.')[-1].lower()
 
-        if file_extension=='pdf':
-            return self.extract_text_from_pdf(file)
-        elif file_extension=='txt':
-            return self.extract_text_from_txt(file)
-        elif file_extension=='docx':
-            return self.extract_text_from_docx(file)
+        if file_extension == 'pdf':
+            return self.extract_text_from_pdf(raw_bytes)
+        elif file_extension == 'txt':
+            return self.extract_text_from_txt(raw_bytes)
+        elif file_extension == 'docx':
+            return self.extract_text_from_docx(raw_bytes)
         else:
             print(f"Unsupported file extension: {file_extension}")
-            return "" 
+            return ""
         
     def create_rag_vector_store(self,text):
         """Create a vector store for RAG"""
@@ -610,14 +600,14 @@ Expected JSON Format:
 ####-------------------------------------------####-------------------------------------------####-------------------------------------------####-------------------------------------------
 ####-------------------------------------------####-------------------------------------------####-------------------------------------------####-------------------------------------------
 
-    def preprocess_resume(self, resume_file, job_id):
+    def preprocess_resume(self, file_name, raw_bytes, job_id):
             """
             Runs in background. Stores everything on self.
             """
-            # 🔒 Set active job
+            # 🔹 Set active job
             self.job_id = job_id
 
-            self.resume_text = self.extract_text_from_file(resume_file)
+            self.resume_text = self.extract_text_from_file(file_name, raw_bytes)
 
             with ThreadPoolExecutor(max_workers=3) as executor:
                 fut_rag = executor.submit(self.create_rag_vector_store, self.resume_text)
@@ -819,8 +809,8 @@ class Implement:
         """Analyze the resume with the agent"""
         return self.agent.analyze_system_new(role,custom_jd)
     
-    def preprocess_resume(self,resume_file,new_job_id):
-        return self.agent.preprocess_resume(resume_file,new_job_id)
+    def preprocess_resume(self, file_name, raw_bytes, new_job_id):
+        return self.agent.preprocess_resume(file_name, raw_bytes, new_job_id)
     
         
     def ask_question(self,question):

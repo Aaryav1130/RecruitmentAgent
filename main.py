@@ -279,6 +279,7 @@ with tabs[0]:
             # Reset state for new upload
             st.session_state.job_id = new_job_id
             st.session_state.active_resume_name = resume_file.name
+            st.session_state.raw_pdf_bytes = resume_file.getvalue()
             st.session_state.preprocess_future = None
             st.session_state.analyze_requested = False
             st.session_state.analysis_running = False
@@ -290,7 +291,8 @@ with tabs[0]:
             # Start background preprocessing
             st.session_state.preprocess_future = executor.submit(
                 resume_analyser.preprocess_resume,
-                resume_file,
+                resume_file.name,
+                st.session_state.raw_pdf_bytes,
                 new_job_id,
             )
 
