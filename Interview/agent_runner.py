@@ -2,8 +2,7 @@ from dotenv import load_dotenv
 from livekit.plugins import groq
 from livekit import agents, rtc
 from livekit.agents import AgentServer, AgentSession, Agent, room_io, inference, ToolError, RunContext,function_tool
-from livekit.plugins import noise_cancellation, silero
-from livekit.plugins.turn_detector.multilingual import MultilingualModel
+from livekit.plugins import silero
 from prompts import AGENT_INSTRUCTION, SESSION_INSTRUCTION
 from livekit.plugins import bey
 from typing import Annotated
@@ -38,7 +37,6 @@ async def my_agent(ctx: agents.JobContext):
             }
         ),
         vad=silero.VAD.load(),
-        turn_detection=MultilingualModel(),
     )
 
     avatar = bey.AvatarSession(
@@ -50,12 +48,6 @@ async def my_agent(ctx: agents.JobContext):
     await session.start(
         room=ctx.room,
         agent=Assistant(),
-        room_options=room_io.RoomOptions(
-            audio_input=room_io.AudioInputOptions(
-                noise_cancellation=lambda params: noise_cancellation.BVCTelephony() if params.participant.kind == rtc.ParticipantKind.PARTICIPANT_KIND_SIP else noise_cancellation.BVC(),
-            ),
-            video_input=True
-        ),
     )
 
     await session.generate_reply(
