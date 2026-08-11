@@ -35,7 +35,7 @@ def safe_llm_invoke(llm, prompt, max_retries=3):
 class ResumeAnalysisAgent:
     def __init__(self):
         self.api_key=GROQ_API_KEY
-        self.cutoff_score=75
+        self.cutoff_score=70
         self.resume_text=None
         self.rag_vectorstore=None
         self.analysis_result=None
@@ -780,197 +780,32 @@ Expected JSON Format:
         """Generate an improved version of the resume optimized for the job description"""
         try:
             prompt = f"""
-                    YOU ARE A DETERMINISTIC RESUME FORMATTER AND COPY-EDITOR.
+            You are an expert resume consultant.
+            Review the following resume and the analysis result.
+            Provide 3-5 concrete, actionable bullet points on how to improve this resume for the target role.
+            DO NOT generate LaTeX. Generate ONLY plain markdown text.
+            
+            --- RESUME TEXT ---
+            {self.resume_text}
+            
+            --- ANALYSIS RESULT ---
+            {analysis_result}
+            """
+            
+            # Step 1: Invoke LLM with the given prompt
+            response = safe_llm_invoke(self.llm, prompt)
+            
+            # Step 2: Extract the resume text
+            print("✅ llm response of resume advice")
+            improved_resume = response.content.strip()
 
-                    YOU ARE NOT AN IMPROVER, NOT AN OPTIMIZER, NOT A CREATOR.
-                    YOU ARE ONLY ALLOWED TO COPY, LIGHTLY REPHRASE, AND REFORMAT TEXT THAT EXISTS VERBATIM IN THE RESUME.
+            # Step 3: Return the resume content
+            return improved_resume
 
-                    IF YOU ADD EVEN ONE WORD, TOOL, METRIC, DATE, DEGREE, TITLE, SKILL, SUPERVISOR, TECHNOLOGY, OR IDEA
-                    THAT DOES NOT APPEAR IN THE RESUME TEXT BELOW — THE OUTPUT IS INVALID.
-
-                    ========================
-                    SOURCE OF TRUTH — RESUME
-                    ========================
-                    \"\"\"{self.resume_text}\"\"\"
-
-                    ========================
-                    HARD CONSTRAINTS (ABSOLUTE)
-                    ========================
-                    - You MUST treat the resume text as the ONLY source of truth.
-                    - You MUST NOT infer missing years, supervisors, locations, institutions, or outcomes.
-                    - You MUST NOT normalize or “complete” partial information.
-                    - You MUST NOT replace missing values with placeholders like [Year – Year], None, N/A, or similar.
-                    - If any data is missing → DELETE THAT LINE OR ENTIRE SECTION.
-                    - DO NOT mention tools, frameworks, APIs, models, metrics, cloud services, or libraries unless they are written EXACTLY in the resume.
-                    - DO NOT introduce AWS, TensorFlow, supervisors, scores, rankings, accuracy, F1, percentages, or performance claims unless explicitly present.
-                    - DO NOT change degree names, institute names, project titles, or event names.
-                    - DO NOT summarize, extend, or generalize bullets.
-
-                    ========================
-                    CRITICAL CONTACT RULE
-                    ========================
-                    - CONTACT INFORMATION (email, phone, LinkedIn, GitHub) MUST APPEAR ONLY ONCE.
-                    - CONTACT INFORMATION MUST APPEAR ONLY INSIDE THE CENTER BLOCK.
-                    - DO NOT output contact details anywhere else.
-                    - If a contact field is missing → omit ONLY that field.
-
-                    ========================
-                    SECTION CREATION GATE (CRITICAL)
-                    ========================
-                    A SECTION MAY BE CREATED **ONLY IF** THE RESUME TEXT CONTAINS AN EXPLICITLY LABELED SECTION
-                    WITH A MATCHING OR EQUIVALENT TITLE.
-
-                    STRICT RULES:
-                    - EXPERIENCE SECTION:
-                    Create ONLY if the resume explicitly contains a section labeled:
-                    "Experience", "Work Experience", "Professional Experience", or "Employment".
-                    PROJECT CONTENT MUST NEVER BE RECLASSIFIED AS EXPERIENCE.
-
-                    - CERTIFICATIONS SECTION:
-                    Create ONLY if the resume explicitly contains a section labeled:
-                    "Certifications", "Certificates", or "Professional Certifications".
-                    DO NOT treat courses, workshops, hackathons, or participation as certifications.
-
-                    - THESIS SECTION:
-                    Create ONLY if the resume explicitly contains a section labeled "Thesis" or "Dissertation".
-
-                    - OPEN SOURCE CONTRIBUTIONS:
-                    Create ONLY if explicitly labeled as "Open Source", "Open Source Contributions",
-                    or similar.
-
-                    - IF A SECTION HEADER DOES NOT EXIST IN THE RESUME → DELETE THAT ENTIRE SECTION
-                    INCLUDING ITS HEADING AND RULE LINE.
-
-                    ========================
-                    ALLOWED OPERATIONS (ONLY THESE)
-                    ========================
-                    You may ONLY:
-                    - Rephrase existing bullet points using stronger action verbs WITHOUT adding new meaning.
-                    - Fix spacing, punctuation, or LaTeX escaping.
-                    - Bold skills that ALREADY EXIST in the resume (\\textbf{{Skill}}).
-                    - Reorder bullets within the SAME section without changing content.
-                    - Convert plain text into valid LaTeX syntax.
-
-                    ========================
-                    LATEX TEMPLATE (IMMUTABLE)
-                    ========================
-                    You MUST use the following LaTeX structure EXACTLY.
-                    DO NOT change spacing, commands, section order, or formatting.
-                    ONLY replace placeholders with real extracted text OR delete the entire block.
-
-                    \\documentclass[a4paper,12pt]{{article}}
-                    \\usepackage[margin=1in]{{geometry}}
-                    \\usepackage{{hyperref}}
-                    \\usepackage{{enumitem}}
-
-                    \\begin{{document}}
-
-                    \\vspace{{-10pt}}  
-                    \\begin{{center}}
-                        \\Huge \\textbf{{[Candidate Name]}} \\\\ 
-                        \\small
-                        \\href{{mailto:[email]}}{{[email]}}
-                        \\texttt{{|}} [phone]
-                        \\texttt{{|}} \\href{{[linkedin_url]}}{{LinkedIn}}
-                        \\texttt{{|}} \\href{{[github_url]}}{{GitHub}}
-                    \\end{{center}}
-
-                    \\noindent\\rule{{\\linewidth}}{{0.4pt}}
-
-                    [SKILLS_SECTION]
-                    \\vspace{{-10pt}}
-                    \\section*{{Technical Skills}}
-
-                    \\noindent\\rule{{\\linewidth}}{{0.4pt}}
-
-                    [EXPERIENCE_SECTION]
-                    \\vspace{{-10pt}}
-                    \\section*{{Experience}}
-
-                    \\noindent\\rule{{\\linewidth}}{{0.4pt}}
-
-                    [PROJECTS_SECTION]
-                    \\vspace{{-10pt}}
-                    \\section*{{Projects}}
-
-                    \\noindent\\rule{{\\linewidth}}{{0.4pt}}
-
-                    [ACHIEVEMENTS_SECTION]
-                    \\vspace{{-10pt}}
-                    \\section*{{Achievements \\& Hackathons}}
-
-                    \\noindent\\rule{{\\linewidth}}{{0.4pt}}
-
-                    [EDUCATION_SECTION]
-                    \\vspace{{-10pt}}
-                    \\section*{{Education}}
-
-                    \\noindent\\rule{{\\linewidth}}{{0.4pt}}
-
-                    [THESIS_SECTION]
-                    \\vspace{{-10pt}}
-                    \\section*{{Thesis}}
-
-                    \\noindent\\rule{{\\linewidth}}{{0.4pt}}
-
-                    [CERTIFICATIONS_SECTION]
-                    \\vspace{{-10pt}}
-                    \\section*{{Certifications}}
-
-                    \\noindent\\rule{{\\linewidth}}{{0.4pt}}
-
-                    [OPEN_SOURCE_SECTION]
-                    \\vspace{{-10pt}}
-                    \\section*{{Open Source Contributions}}
-
-                    \\end{{document}}
-
-                    ========================
-                    FINAL OUTPUT RULE
-                    ========================
-                    - OUTPUT ONLY VALID, COMPILABLE LaTeX CODE.
-                    - NO explanations.
-                    - NO comments.
-                    - NO markdown.
-                    - NO placeholders.
-                    - NO hallucinated content.
-                    - IF A SECTION IS NOT EXPLICITLY PRESENT IN THE RESUME → DELETE IT COMPLETELY.
-                    - YOU MUST ESCAPE ALL LATEX SPECIAL CHARACTERS IN THE USER'S CONTENT: % & $ # _ {{ }} ~ ^ \\
-                    """
-            try:
-                # Step 1: Invoke LLM with the given prompt
-                response = safe_llm_invoke(self.llm, prompt)
-                
-                # Step 2: Extract the LaTeX-formatted resume text
-                print("✅ llm response of latex code")
-                improved_resume = response.content.strip() # Remove unnecessary spaces
-                
-                # Strip markdown blocks if present
-                if improved_resume.startswith("```latex"):
-                    improved_resume = improved_resume[8:]
-                elif improved_resume.startswith("```"):
-                    improved_resume = improved_resume[3:]
-                if improved_resume.endswith("```"):
-                    improved_resume = improved_resume[:-3]
-                improved_resume = improved_resume.strip()
-
-                # Step 3: Validate the LaTeX format
-                if not improved_resume.startswith(r"\documentclass") or not improved_resume.endswith(r"\end{document}"):
-                    print("❌ Generated content is not in valid LaTeX format")
-                    raise ValueError("Generated content is not in valid LaTeX format. Please retry.")
-
-                # Step 5: Return the LaTeX resume content
-                print("✅ generate latex code succesfully")
-                print(improved_resume)
-                return improved_resume
-
-            except Exception as e:
-                # Step 6: Error handling
-                print(f"❌Error generating improved resume llm problem: {e}")
-                return "Error generating improved resume llm problem . Please try again."
         except Exception as e:
-            print(f"❌Error generating latex code: {e}")
-            return "Error generating latex code. Please try again."
+            # Step 4: Error handling
+            print(f"❌Error generating improved resume llm problem: {e}")
+            return f"Error generating improved resume advice: {e}\n\nPlease try again."
         
 
 ########################################################################################################################################################################################################

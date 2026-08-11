@@ -589,9 +589,10 @@ with tabs[0]:
 
                 with tab_container:
 
-                    st.success("✅ Improved resume generated")
+                    st.success("✅ Resume Improvement Suggestions generated")
 
-                    render_latex_to_pdf(st.session_state.latex_code)
+                    st.markdown("### How to Improve Your Resume")
+                    st.markdown(st.session_state.latex_code)
 
         # Add a section to explain resume improvement suggestions
             ########################################################################################################################################################################

@@ -353,8 +353,8 @@ def create_score_pie_chart(score):
             fontsize=24,fontweight='bold',
             color='white')
     # Add pass/fail indicator
-    status="PASS" if score>=75 else "FAIL"
-    status_color="#4CAF50" if score >=75 else "#d32f2f"
+    status="PASS" if score>=70 else "FAIL"
+    status_color="#4CAF50" if score >=70 else "#d32f2f"
     ax.text(0,-0.15,status,
             ha='center',va='center',
             fontsize=14,fontweight='bold',
