@@ -4,6 +4,24 @@
 
 An end-to-end **AI-driven recruitment automation platform** built with modular agents that handle resume analysis, intelligent job search, and adaptive live interview simulation — all in one seamless pipeline.
 
+---
+
+## 📑 Table of Contents
+
+- [🌟 Live Demos](#-live-demos)
+- [📸 Platform Tour](#-platform-tour)
+- [💡 What it does](#-what-it-does)
+- [🛠️ Tech Stack](#-tech-stack)
+- [🚀 Local Quick Start (Docker)](#-local-quick-start-docker)
+  - [Prerequisites](#1-prerequisites)
+  - [Configuration](#2-configuration)
+  - [Run the Platform](#3-run-the-platform)
+- [🧪 Testing & CI/CD](#-testing--cicd)
+- [🧩 System Architecture](#-system-architecture)
+- [📈 Recent Improvements](#-recent-improvements)
+
+---
+
 ### 🌟 Live Demos
 👉 **Main App (Resume Analysis & Job Search):** https://recruitmentagent-ijspeikrzlsn8iw7mxug5s.streamlit.app/
 
