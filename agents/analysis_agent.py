@@ -162,29 +162,27 @@ class ResumeAnalysisAgent:
     def extract_info_from_resume(self,resume_text):
         try:
             prompt = f"""
-            System: You are a resume parsing expert.
-            Task: Extract all valid information of the following fields (skills, education, experience) from the variable "Resume Content" Only. Only extract information present in "Resume Content". Do NOT hallucinate. Each field's value must be a list of strings. If no information is found, return ["Not found"].
-            Note: Use {resume_text} wherever the "Resume Content" needs to be referenced.
+You are a strict JSON-only resume parsing expert.
+Extract all skills, education, and experience from the resume text provided below.
 
-            Fields to extract:
+RULES:
+1. ONLY extract information present in the resume text. Do NOT hallucinate.
+2. Return ONLY a valid JSON object. No markdown, no explanations, no prefix, no suffix.
+3. The JSON MUST have exactly these three keys: "skills", "education", "experience".
+4. The value for each key MUST be a list of strings.
+5. If no information is found for a field, return ["Not found"] for that field.
 
-            1. Skills: Technical tools, programming languages, frameworks, and domain knowledge. Example: ["Python", "JavaScript", "React.js", "Node.js", "SQL", "Docker", "LangChain", "Machine Learning", "llama3:1b", "RAG", "AI-Agent"]
-            2. Education: Degree, major/subject, institution, and explicitlty graduation year . Example: ["B.Tech in Computer Science, Stanford University (2020–2024)", "B.Sc in Data Science, University of California, Berkeley (2021–2024)", "B.E in IT, IIT Bombay (2019–2023)"]
-            3. Experience: Hands-on experience from projects, internships, hackathons, open-source contributions, competitions, or work experience. Example: ["Built an AI agent using LangChain and ChatGroq (Llama-3.1-8B) for real-time query handling and structured responses.", "Developed a recommendation system with Python and Scikit-learn to provide personalized product suggestions.", "Created an NLP pipeline with SpaCy and Transformers for sentiment analysis and entity recognition on large datasets.", "Implemented a serverless REST API using FastAPI and AWS Lambda for high-volume requests with low latency.", "Designed an interactive dashboard with Streamlit and Plotly to visualize real-time sales data and key metrics."]
+Expected JSON Format:
+{{
+    "skills": ["Python", "React.js", "Docker"],
+    "education": ["B.Tech in Computer Science, Stanford University (2020-2024)"],
+    "experience": ["Software Engineer at Tech Corp (2022-Present)", "Built an AI agent using LangChain."]
+}}
 
-            Expected Output example:
-            {{
-                "skills": ["Python", "React.js", "Docker"],
-                "education": ["B.Tech in Computer Science, Stanford University (2020–2024)"],
-                "experience": ["Hackathon Experience (college or national-level events)", "Open-Source Contribution Experience (GitHub projects)"]
-            }}
-
-                **RULES:**
-                - Only use information explicitly mentioned in the Resume
-                - If no information found in any field: ["None found"]
-                - Return ONLY valid JSON - no explanations!
-
-            """
+--- START RESUME TEXT ---
+{resume_text}
+--- END RESUME TEXT ---
+"""
             response_text = safe_llm_invoke(self.llm, prompt).content.strip()
             print(f"📄 Resume LLM response preview: {response_text[:50]}...") 
             
@@ -212,6 +210,11 @@ class ResumeAnalysisAgent:
             skills = llm_data.get("skills", ["Not found"])
             education = llm_data.get("education", ["Not found"])
             experience = llm_data.get("experience", ["Not found"])
+            
+            # Debug: If the LLM returned JSON but didn't include the keys, show what it returned
+            if skills == ["Not found"] and education == ["Not found"] and experience == ["Not found"]:
+                debug_msg = f"LLM Error (Missing Keys): {str(llm_data)[:150]}"
+                return [debug_msg], [debug_msg], [debug_msg]
             
             # Ensure they are lists
             if not isinstance(skills, list): skills = [str(skills)]

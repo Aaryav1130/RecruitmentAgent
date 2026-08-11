@@ -69,7 +69,12 @@ def render_latex_to_pdf(latex_code):
                 st.download_button("Download Resume PDF", pdf_bytes, file_name="resume.pdf")
 
         except subprocess.CalledProcessError as e:
-            st.error(f"Failed to compile PDF. Check your LaTeX code.\nError: {e}")
+            error_log = e.stdout.decode('utf-8') if e.stdout else str(e)
+            st.error("Failed to compile PDF. Check your LaTeX code.")
+            with st.expander("Show Compilation Log"):
+                st.code(error_log)
+            with st.expander("Show Generated LaTeX Code"):
+                st.code(latex_code, language="latex")
         except FileNotFoundError:
             st.error("xelatex not found. Make sure BasicTeX is installed and the path is correct.")
 
