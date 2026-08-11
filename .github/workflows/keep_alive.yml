@@ -1,0 +1,46 @@
+name: Keep Streamlit Awake
+
+on:
+  schedule:
+    - cron: "0 0 * * *" # Runs every day at midnight UTC
+  workflow_dispatch: # Allows manual triggering from the Actions tab
+
+jobs:
+  ping_streamlit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          
+      - name: Install Playwright
+        run: |
+          python -m pip install --upgrade pip
+          pip install playwright
+          playwright install chromium
+          
+      - name: Visit Streamlit App with Headless Browser
+        run: |
+          python -c "
+          from playwright.sync_api import sync_playwright
+          import time
+          
+          def run(playwright):
+              browser = playwright.chromium.launch(headless=True)
+              context = browser.new_context()
+              page = context.new_page()
+              
+              print('Visiting Streamlit app...')
+              # Using the URL from your UptimeRobot screenshot
+              page.goto('https://recruitmentagent-ijspeikrzlsn8iw7mxug5s.streamlit.app/', wait_until='networkidle')
+              
+              print('Waiting 15 seconds to simulate user activity and websocket connection...')
+              time.sleep(15)
+              
+              print('Success! Streamlit sleep timer has been reset.')
+              browser.close()
+              
+          with sync_playwright() as playwright:
+              run(playwright)
+          "
