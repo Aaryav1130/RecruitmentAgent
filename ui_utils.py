@@ -312,11 +312,13 @@ def display_resume_analysis_summary(resume_data):
                     for i,suggestion in enumerate(weakness['improvement_suggestions']):
                         st.markdown(f'<div class="solution-detail">{i+1}.{suggestion}</div>',unsafe_allow_html=True)
 
-########################################################################################################################################################################################################
+########################################################################################################################################################################
 def create_score_pie_chart(score):
-    """Create a professional pie chart for the score visualization"""
-    fig,ax=plt.subplots(figsize=(4,4),facecolor='#111111')
-    
+    """Create a pie chart showing the score"""
+    # Make pie chart smaller
+    fig, ax = plt.subplots(figsize=(3, 3))
+    fig.patch.set_facecolor('#1e1e1e')
+    ax.set_facecolor('#1e1e1e')
     # Choose color based on score
     if score >= 75:
         score_color = "#32A536"   # green
@@ -384,7 +386,7 @@ def resume_qa_section(ask_question_func=None):
             st.markdown(f"<p>{response}</p>",unsafe_allow_html=True)
         st.markdown('</div>',unsafe_allow_html=True)
 
-########################################################################################################################################################################################################
+########################################################################################################################################################################
 
 
 def clean_and_organize_experience(experience_items):
@@ -462,8 +464,7 @@ def display_extracted_information(resume_data,resume_file):
 
         st.markdown("""<h4 style="color: #333; margin-bottom: 10px; margin-top: 10px;">🖼️ Resume Preview</h4>""",unsafe_allow_html=True)
         if resume_file:
-            resume_file.seek(0)  # Reset pointer because PDF extractors read it earlier
-            pdf_bytes = resume_file.read()
+            pdf_bytes = resume_file.getvalue()
             base64_pdf = base64.b64encode(pdf_bytes).decode("utf-8")
 
             st.markdown(
@@ -910,20 +911,22 @@ def apply_styling():
 
         /* Weakness detail styling */
         .weakness-detail {{
-            background-color: #330000;
+            background-color: #ffebee;
+            color: #c62828;
             padding: 10px 15px;
             margin: 5px 0;
             border-radius: 5px;
-            border-left: 3px solid #ff6666;
+            border-left: 4px solid #d32f2f;
         }}
 
         /* Solution styling */
         .solution-detail {{
-            background-color: #003300;
+            background-color: #e8f5e9;
+            color: #2e7d32;
             padding: 10px 15px;
             margin: 5px 0;
             border-radius: 5px;
-            border-left: 3px solid #66ff66;
+            border-left: 4px solid #388e3c;
         }}
 
         /* Example detail styling */
