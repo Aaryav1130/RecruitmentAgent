@@ -462,6 +462,7 @@ def display_extracted_information(resume_data,resume_file):
 
         st.markdown("""<h4 style="color: #333; margin-bottom: 10px; margin-top: 10px;">🖼️ Resume Preview</h4>""",unsafe_allow_html=True)
         if resume_file:
+            resume_file.seek(0)  # Reset pointer because PDF extractors read it earlier
             pdf_bytes = resume_file.read()
             base64_pdf = base64.b64encode(pdf_bytes).decode("utf-8")
 
