@@ -186,30 +186,44 @@ class ResumeAnalysisAgent:
 
             """
             response_text = safe_llm_invoke(self.llm, prompt).content.strip()
-            print(f"📄 Resume LLM response preview: {response_text[:10]}...") 
+            print(f"📄 Resume LLM response preview: {response_text[:50]}...") 
+            
+            # Robust JSON parsing
             try:
+                # First try direct parsing
                 llm_data = json.loads(response_text)
             except json.JSONDecodeError:
-                # Fallback: extract JSON block safely
-                json_start = response_text.find("{")
-                json_end = response_text.rfind("}") + 1
-                if json_start != -1 and json_end != -1:
-                    llm_data = json.loads(response_text[json_start:json_end])
-                else:
-                    print("❌ LLM response does not contain JSON")
+                try:
+                    # Fallback 1: Extract block between first { and last }
+                    json_start = response_text.find("{")
+                    json_end = response_text.rfind("}") + 1
+                    if json_start != -1 and json_end != -1:
+                        json_str = response_text[json_start:json_end]
+                        # Fix common LLM JSON errors (trailing commas)
+                        json_str = re.sub(r',\s*}', '}', json_str)
+                        json_str = re.sub(r',\s*\]', ']', json_str)
+                        llm_data = json.loads(json_str)
+                    else:
+                        raise ValueError("No JSON brackets found")
+                except Exception as e:
+                    print(f"❌ LLM response JSON parsing failed: {e}")
                     llm_data = {}
 
             skills = llm_data.get("skills", ["Not found"])
             education = llm_data.get("education", ["Not found"])
             experience = llm_data.get("experience", ["Not found"])
+            
+            # Ensure they are lists
+            if not isinstance(skills, list): skills = [str(skills)]
+            if not isinstance(education, list): education = [str(education)]
+            if not isinstance(experience, list): experience = [str(experience)]
+            
             print(f"✅ Extracted: {len(skills)} skills, {len(education)} education, {len(experience)} experience")
             return skills, education, experience
 
         except Exception as e:
             print(f"Error extracting skills/education/experience : {e}")
-
-         # Fallback
-        return ["Not found"], ["Not found"], ["Not found"]
+            return ["Not found"], ["Not found"], ["Not found"]
     
 
 
