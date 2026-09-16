@@ -18,7 +18,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install playwright
-          playwright install chromium
+          playwright install --with-deps chromium
           
       - name: Visit Streamlit App with Headless Browser
         run: |
@@ -32,12 +32,18 @@ jobs:
               page = context.new_page()
               
               print('Visiting Streamlit app...')
-              page.goto('https://recruitmentagent-ijspeikrzlsn8iw7mxug5s.streamlit.app/', wait_until='networkidle')
+              page.goto('https://recruitmentagent-ijspeikrzlsn8iw7mxug5s.streamlit.app/', wait_until='domcontentloaded')
               
               # Check if the app is asleep and click the wake up button if present
               try:
-                  wake_button = page.get_by_text('Yes, get this app back up!')
-                  if wake_button.is_visible(timeout=5000):
+                  wake_button = page.get_by_role('button', name='Yes, get this app back up!')
+                  try:
+                      wake_button.wait_for(state='visible', timeout=5000)
+                      is_visible = True
+                  except:
+                      is_visible = False
+                      
+                  if is_visible:
                       print('App is asleep! Clicking the wake up button...')
                       wake_button.click()
                       # Wait for the app to actually boot up (can take a minute)
