@@ -25,7 +25,7 @@ server = AgentServer()
 async def my_agent(ctx: agents.JobContext):
     session = AgentSession(
         stt=groq.STT(model="whisper-large-v3-turbo", language="en"),
-        llm=groq.LLM(model="llama-3.1-8b-instant"),
+        llm=groq.LLM(model="openai/gpt-oss-20b"),
         tts=inference.TTS(
             model="cartesia/sonic-3", 
             voice="a167e0f3-df7e-4d52-a9c3-f949145efdab",

@@ -738,7 +738,7 @@ Expected JSON Format:
         
         retriever = self.rag_vectorstore.as_retriever(search_kwargs={"k": 4})
         # llm = ChatGroq(
-        #     model='llama-3.1-8b-instant',
+        #     model='openai/gpt-oss-20b',
         #     api_key=GROQ_API_KEY
         # )
 
