@@ -7,12 +7,30 @@ load_dotenv()
 GROQ_API_KEY=os.getenv("GROQ_API_KEY")
 SERPAPI_API_KEY=os.getenv("SERPAPI_API_KEY")
 
+import requests
+
+def get_valid_groq_model():
+    try:
+        if GROQ_API_KEY:
+            headers = {"Authorization": f"Bearer {GROQ_API_KEY}"}
+            resp = requests.get("https://api.groq.com/openai/v1/models", headers=headers, timeout=5)
+            if resp.status_code == 200:
+                models = resp.json().get("data", [])
+                # Prefer Llama models, specifically 70B if available
+                for m in models:
+                    if "llama" in m["id"].lower() and "70b" in m["id"].lower():
+                        return m["id"]
+                for m in models:
+                    if "llama" in m["id"].lower():
+                        return m["id"]
+                if models:
+                    return models[0]["id"]
+    except Exception as e:
+        print("Dynamic model fetch failed:", e)
+    return "llama-3.1-8b-instant"
+
 # Model settings
-LLM_MODEL="llama-3.3-70b-versatile"
-# LLM_MODEL="moonshotai/kimi-k2-instruct"
-# LLM_MODEL="qwen3:4b-instruct"
-# LLM_MODEL="qwen2.5:1.5b-instruct"
-# LLM_MODEL="qwen2.5:0.5b-instruct"
+LLM_MODEL=get_valid_groq_model()
 
 
 # Job search settings

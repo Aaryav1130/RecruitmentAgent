@@ -21,11 +21,16 @@ class Assistant(Agent):
 server = AgentServer()
 
 
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import LLM_MODEL
+
 @server.rtc_session()
 async def my_agent(ctx: agents.JobContext):
     session = AgentSession(
         stt=groq.STT(model="whisper-large-v3-turbo", language="en"),
-        llm=groq.LLM(model="llama-3.3-70b-versatile"),
+        llm=groq.LLM(model=LLM_MODEL),
         tts=inference.TTS(
             model="cartesia/sonic-3", 
             voice="a167e0f3-df7e-4d52-a9c3-f949145efdab",
