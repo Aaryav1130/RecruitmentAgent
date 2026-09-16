@@ -9,28 +9,62 @@ SERPAPI_API_KEY=os.getenv("SERPAPI_API_KEY")
 
 import requests
 
+# Priority list of models to try, ordered by preference (largest context first)
+# These are the models known to work on Groq free tier as of 2026
+_MODEL_PRIORITY = [
+    "meta-llama/llama-4-scout-17b-16e-instruct",  # 131K context
+    "qwen/qwen3-32b",                              # 32K context
+    "mistral-saba-24b",                             # 32K context
+    "llama-3.3-70b-versatile",                      # 128K context
+    "llama-3.1-8b-instant",                         # 128K context (deprecated but try)
+    "openai/gpt-oss-20b",                           # 16K context
+]
+
 def get_valid_groq_model():
+    """Dynamically find the best available Groq model by querying the API."""
+    available_ids = set()
     try:
         if GROQ_API_KEY:
             headers = {"Authorization": f"Bearer {GROQ_API_KEY}"}
-            resp = requests.get("https://api.groq.com/openai/v1/models", headers=headers, timeout=5)
+            resp = requests.get(
+                "https://api.groq.com/openai/v1/models",
+                headers=headers,
+                timeout=10
+            )
             if resp.status_code == 200:
                 models = resp.json().get("data", [])
-                # Prefer Llama models, specifically 70B if available
+                available_ids = {m["id"] for m in models}
+                print(f"✅ Groq API returned {len(available_ids)} available models: {sorted(available_ids)}")
+
+                # 1. Try our priority list first
+                for model_id in _MODEL_PRIORITY:
+                    if model_id in available_ids:
+                        print(f"✅ Selected model from priority list: {model_id}")
+                        return model_id
+
+                # 2. Fallback: pick the first chat model that's NOT a whisper/tts/image model
+                skip_prefixes = ("whisper", "distil-whisper", "playai", "orpheus", "compound")
                 for m in models:
-                    if "llama" in m["id"].lower() and "70b" in m["id"].lower():
-                        return m["id"]
-                for m in models:
-                    if "llama" in m["id"].lower():
-                        return m["id"]
+                    mid = m["id"]
+                    if not any(mid.startswith(p) for p in skip_prefixes):
+                        print(f"⚠️ Using fallback model: {mid}")
+                        return mid
+
+                # 3. Last resort: first model in the list
                 if models:
+                    print(f"⚠️ Using last-resort model: {models[0]['id']}")
                     return models[0]["id"]
+            else:
+                print(f"⚠️ Groq /models returned status {resp.status_code}: {resp.text[:200]}")
     except Exception as e:
-        print("Dynamic model fetch failed:", e)
-    return "llama-3.1-8b-instant"
+        print(f"⚠️ Dynamic model fetch failed: {e}")
+
+    # If everything fails, return this as the static fallback
+    return "meta-llama/llama-4-scout-17b-16e-instruct"
 
 # Model settings
-LLM_MODEL=get_valid_groq_model()
+LLM_MODEL = get_valid_groq_model()
+print(f"🔧 LLM_MODEL = {LLM_MODEL}")
 
 
 # Job search settings

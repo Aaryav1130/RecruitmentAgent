@@ -54,7 +54,7 @@ class ResumeAnalysisAgent:
         self.experience=[]
         self.job_id=None
         self.contact_info={"email":"","phone":""}
-        self.llm = ChatGroq(model=LLM_MODEL, api_key=GROQ_API_KEY)
+        self.llm = ChatGroq(model=LLM_MODEL, api_key=GROQ_API_KEY, max_tokens=4096)
         # self.llm=ChatOllama(model=LLM_MODEL,temperature=0)
         self.embeddings=HuggingFaceEmbeddings(model_name='sentence-transformers/all-MiniLM-L6-v2')
 
@@ -151,6 +151,8 @@ class ResumeAnalysisAgent:
 
     def extract_info_from_resume(self,resume_text):
         try:
+            # Truncate resume to fit within model context window
+            truncated_resume = resume_text[:6000]
             prompt = f"""
 You are a strict JSON-only resume parsing expert.
 Extract all skills, education, and experience from the resume text provided below.
@@ -170,7 +172,7 @@ Expected JSON Format:
 }}
 
 --- START RESUME TEXT ---
-{resume_text}
+{truncated_resume}
 --- END RESUME TEXT ---
 """
             response_text = safe_llm_invoke(self.llm, prompt).content.strip()
@@ -232,8 +234,8 @@ Expected JSON Format:
     def compare_resume_jd_new(self,skills,experience,education,role_requirements=None,custom_jd=None):
             try:
                 context_text=""
-                experiences=",".join(experience)[:2000]
-                skill=",".join(skills)
+                experiences=",".join(experience)[:1500]
+                skill=",".join(skills)[:1500]
                 role=None
                 if custom_jd:
                     jd_text=self.extract_text_from_file(custom_jd.name, custom_jd.getvalue())
@@ -241,11 +243,11 @@ Expected JSON Format:
                     retriever=jd_vectorstore.as_retriever(search_kwargs={"k": 3})
                     query="Extract all technical skills, programming languages, frameworks, tools, cloud platforms, databases, and relevant technologies mentioned in this job description. Include both mandatory and optional skills.For example: ['Python', 'JavaScript', 'React.js', 'Node.js', 'SQL', 'Docker', 'AWS', 'Machine Learning', 'LangChain']."
                     relevant_chunks = retriever.invoke(query)
-                    context_text = "\n".join([doc.page_content for doc in relevant_chunks])[:3000]
+                    context_text = "\n".join([doc.page_content for doc in relevant_chunks])[:2000]
                     print(f"✅ JD context: {len(relevant_chunks)} chunks")
                 elif role_requirements:
                     role = "the selected role"
-                    context_text=",".join(role_requirements)
+                    context_text=",".join(role_requirements)[:2000]
                     print(f"✅ Role requirements: {len(role_requirements)} skills")
 
                 if not context_text:
@@ -714,7 +716,7 @@ Expected JSON Format:
     }}
 
     Interview:
-    {formatted_text}
+    {formatted_text[:4000]}
     """
 
             llm_response = safe_llm_invoke(self.llm, prompt)
@@ -740,15 +742,11 @@ Expected JSON Format:
         if not self.rag_vectorstore or not self.resume_text:
             return "Please analyze a resume first"
         
-        retriever = self.rag_vectorstore.as_retriever(search_kwargs={"k": 4})
-        # llm = ChatGroq(
-        #     model='openai/gpt-oss-20b',
-        #     api_key=GROQ_API_KEY
-        # )
+        retriever = self.rag_vectorstore.as_retriever(search_kwargs={"k": 3})
 
         
         docs = retriever.invoke(question)
-        context = "\n".join([doc.page_content for doc in docs])
+        context = "\n".join([doc.page_content for doc in docs])[:3000]
         
         prompt = f""" You are strict prompt follower and analyze carefully the prompt and do what only that prompt say,
         You are a helpful assistant answering questions about a resume.
@@ -773,6 +771,9 @@ Expected JSON Format:
     def get_improved_resume(self,analysis_result):
         """Generate an improved version of the resume optimized for the job description"""
         try:
+            # Truncate inputs to fit within model context window
+            truncated_resume = (self.resume_text or "")[:3000]
+            truncated_analysis = str(analysis_result)[:2000]
             prompt = f"""
             You are an expert resume consultant.
             Review the following resume and the analysis result.
@@ -780,10 +781,10 @@ Expected JSON Format:
             DO NOT generate LaTeX. Generate ONLY plain markdown text.
             
             --- RESUME TEXT ---
-            {self.resume_text}
+            {truncated_resume}
             
             --- ANALYSIS RESULT ---
-            {analysis_result}
+            {truncated_analysis}
             """
             
             # Step 1: Invoke LLM with the given prompt
