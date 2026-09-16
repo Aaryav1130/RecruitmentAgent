@@ -498,8 +498,12 @@ Expected JSON Format:
                     json_end = response_text.rfind("}") + 1
 
                     if json_start != -1 and json_end != -1:
+                        json_str = response_text[json_start:json_end]
+                        # Fix common LLM JSON errors (trailing commas)
+                        json_str = re.sub(r',\s*}', '}', json_str)
+                        json_str = re.sub(r',\s*\]', ']', json_str)
                         try:
-                            llm_data = json.loads(response_text[json_start:json_end])
+                            llm_data = json.loads(json_str)
                         except json.JSONDecodeError as e:
                             print("❌ JD Match JSON extraction failed:", e)
                             llm_data = {}

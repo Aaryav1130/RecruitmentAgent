@@ -8,7 +8,7 @@ GROQ_API_KEY=os.getenv("GROQ_API_KEY")
 SERPAPI_API_KEY=os.getenv("SERPAPI_API_KEY")
 
 # Model settings
-LLM_MODEL="openai/gpt-oss-20b"
+LLM_MODEL="llama-3.3-70b-versatile"
 # LLM_MODEL="moonshotai/kimi-k2-instruct"
 # LLM_MODEL="qwen3:4b-instruct"
 # LLM_MODEL="qwen2.5:1.5b-instruct"
