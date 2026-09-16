@@ -1425,6 +1425,18 @@ with tabs[2]:
                 except Exception as e:
                     st.error(f"Error generating interview questions: {str(e)}")
 
+        with st.container(border=True):
+            st.subheader("🎤 Live Interview")
+            st.image("Images/interview.webp", use_container_width=True)
+            is_started_generic = st.checkbox("Start Interview Mode", key="generic_interview_toggle")
+            if is_started_generic:
+                st.link_button(
+                    "🚀 Generate Interview",
+                    "http://localhost:5173/",
+                    use_container_width=True
+                )
+                st.session_state.live_interview = True
+
         # Display generated generic questions
         if st.session_state.interview_questions and st.session_state.interview_questions['job']['title'] == 'Generic':
             interview_data = st.session_state.interview_questions
