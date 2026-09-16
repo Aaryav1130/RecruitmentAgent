@@ -341,7 +341,13 @@ with tabs[0]:
                 st.rerun()
 
             # Preprocessing finished
-            finished_job_id = st.session_state.preprocess_future.result()
+            try:
+                finished_job_id = st.session_state.preprocess_future.result()
+            except Exception as e:
+                st.error(f"Preprocessing failed: {e}")
+                st.session_state.analyze_requested = False
+                st.session_state.analysis_running = False
+                st.stop()
 
             # 🔒 Ignore stale uploads
             if finished_job_id != st.session_state.job_id:
@@ -353,10 +359,6 @@ with tabs[0]:
                 st.session_state.analysis_running = True
                 resume_analyser = st.session_state.analysis_agent
 
-
-
-
-
                 with st.spinner("Analyzing your resume..."):
                     try:
                         if custom_jd:
@@ -364,21 +366,33 @@ with tabs[0]:
                                 temp_file.write(custom_jd.getbuffer())
                                 temp_path=temp_file.name
                             analysis_result,extracted_text=resume_analyser.analyze_resume(resume_file,custom_jd=custom_jd)
+                            # Clean up temp file
+                            try:
+                                os.unlink(temp_path)
+                            except:
+                                pass
                         else:
                             analysis_result,extracted_text=resume_analyser.analyze_resume(resume_file,role=role_requirements[role])
+                        
                         try:
                             if extracted_text:
                                 st.session_state.analysis_result = analysis_result
                                 st.session_state.resume_text = extracted_text
                             else:
                                 st.error("Could not extract text from the uploaded file.")
+                                st.session_state.analyze_requested = False
+                                st.session_state.analysis_running = False
                         except Exception as file_error:
                             st.error(f"Error processng file: {str(file_error)}")
                             st.info("If the error persists, try uploading a different file format or check if the resume is properly formatted.")
+                            st.session_state.analyze_requested = False
+                            st.session_state.analysis_running = False
 
                     except Exception as e:
                         st.error(f"Error analyzing resume: {e}")
                         st.info("If the error persists, try uploading a different file format or check if the resume is properly formatted.")
+                        st.session_state.analyze_requested = False
+                        st.session_state.analysis_running = False
 
         
 
@@ -1149,7 +1163,7 @@ with tabs[2]:
                             st.stop()
 
                         # Step 2: Call evaluation function
-                        evaluation = resume_analyser.feedback_interview(messages)
+                        evaluation = st.session_state.analysis_agent.feedback_interview(messages)
 
                         if "error" in evaluation:
                             st.error(f"Evaluation failed: {evaluation['error']}")
@@ -1159,9 +1173,11 @@ with tabs[2]:
                         # Step 3: Store report
                         st.session_state.final_report = evaluation
                         st.success("Report generated successfully!")
+                        st.session_state.processing_report = False
 
                     except Exception as e:
                         st.error(f"Error: {e}")
+                        st.session_state.processing_report = False
 
             # --- Render report ---
             report = st.session_state.get("final_report")

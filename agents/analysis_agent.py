@@ -610,21 +610,35 @@ Expected JSON Format:
             """
             Runs in background. Stores everything on self.
             """
-            # 🔹 Set active job
-            self.job_id = job_id
+            try:
+                # 🔹 Set active job
+                self.job_id = job_id
 
-            self.resume_text = self.extract_text_from_file(file_name, raw_bytes)
+                self.resume_text = self.extract_text_from_file(file_name, raw_bytes)
 
-            with ThreadPoolExecutor(max_workers=3) as executor:
-                fut_rag = executor.submit(self.create_rag_vector_store, self.resume_text)
-                fut_contact = executor.submit(self.extract_contact_info, self.resume_text)
-                fut_extract = executor.submit(self.extract_info_from_resume, self.resume_text)
+                # Guard against empty text (scanned/image PDFs or corrupted files)
+                if not self.resume_text or len(self.resume_text.strip()) < 20:
+                    print("⚠️ Resume text is empty or too short — using placeholder")
+                    self.resume_text = "No readable text could be extracted from this file."
 
-                self.skills, self.education, self.experience = fut_extract.result()
-                self.rag_vectorstore = fut_rag.result()
-                self.contact_info = fut_contact.result()
+                with ThreadPoolExecutor(max_workers=3) as executor:
+                    fut_rag = executor.submit(self.create_rag_vector_store, self.resume_text)
+                    fut_contact = executor.submit(self.extract_contact_info, self.resume_text)
+                    fut_extract = executor.submit(self.extract_info_from_resume, self.resume_text)
 
-            return job_id  # ONLY return job_id (no data passing)
+                    self.skills, self.education, self.experience = fut_extract.result()
+                    self.rag_vectorstore = fut_rag.result()
+                    self.contact_info = fut_contact.result()
+
+                return job_id  # ONLY return job_id (no data passing)
+            except Exception as e:
+                print(f"❌ preprocess_resume failed: {e}")
+                # Set safe defaults so the app doesn't crash
+                self.skills = [f"Error: {str(e)[:80]}"]
+                self.education = ["Not found"]
+                self.experience = ["Not found"]
+                self.contact_info = {"email": "", "phone": ""}
+                return job_id
     
     def analyze_system_new(self, role_requirements=None, custom_jd=None):
         """
@@ -731,7 +745,11 @@ Expected JSON Format:
             if not match:
                 return {"error": "No JSON found in LLM response"}
 
-            return json.loads(match.group(0))
+            json_str = match.group(0)
+            # Fix common LLM JSON errors (trailing commas)
+            json_str = re.sub(r',\s*}', '}', json_str)
+            json_str = re.sub(r',\s*\]', ']', json_str)
+            return json.loads(json_str)
 
         except Exception as e:
             return {"error": f"Evaluation failed: {str(e)}"}
@@ -762,7 +780,7 @@ Expected JSON Format:
         Answer:
         """
         
-        response = self.llm.invoke(prompt)
+        response = safe_llm_invoke(self.llm, prompt)
         return response.content.strip() 
         
 
@@ -832,7 +850,7 @@ class Implement:
         try:
             return self.agent.evaluate_interview(conversation)
         except Exception as e:
-            return f"Error:{e}"
+            return {"error": str(e)}
         
             
     def get_improved_resume(self, analysis_result):
