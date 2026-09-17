@@ -7,7 +7,10 @@ from dotenv import load_dotenv
 from flask_cors import CORS
 from livekit.api import LiveKitAPI, ListRoomsRequest
 
-load_dotenv()
+# Load .env from project root (where LIVEKIT_API_KEY etc. live)
+_root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+load_dotenv(os.path.join(_root_dir, ".env"))
+load_dotenv()  # Also load local .env if present
 
 # Add parent directory to path so we can import utils
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
