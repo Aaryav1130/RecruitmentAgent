@@ -34,12 +34,12 @@ def get_valid_groq_model():
             if resp.status_code == 200:
                 models = resp.json().get("data", [])
                 available_ids = {m["id"] for m in models}
-                print(f"✅ Groq API returned {len(available_ids)} available models: {sorted(available_ids)}")
+                print(f"[OK] Groq API returned {len(available_ids)} available models: {sorted(available_ids)}")
 
                 # 1. Try our priority list first
                 for model_id in _MODEL_PRIORITY:
                     if model_id in available_ids:
-                        print(f"✅ Selected model from priority list: {model_id}")
+                        print(f"[OK] Selected model from priority list: {model_id}")
                         return model_id
 
                 # 2. Fallback: pick the first chat model that's NOT a whisper/tts/image model
@@ -47,24 +47,24 @@ def get_valid_groq_model():
                 for m in models:
                     mid = m["id"]
                     if not any(mid.startswith(p) for p in skip_prefixes):
-                        print(f"⚠️ Using fallback model: {mid}")
+                        print(f"[WARN] Using fallback model: {mid}")
                         return mid
 
                 # 3. Last resort: first model in the list
                 if models:
-                    print(f"⚠️ Using last-resort model: {models[0]['id']}")
+                    print(f"[WARN] Using last-resort model: {models[0]['id']}")
                     return models[0]["id"]
             else:
-                print(f"⚠️ Groq /models returned status {resp.status_code}: {resp.text[:200]}")
+                print(f"[WARN] Groq /models returned status {resp.status_code}: {resp.text[:200]}")
     except Exception as e:
-        print(f"⚠️ Dynamic model fetch failed: {e}")
+        print(f"[WARN] Dynamic model fetch failed: {e}")
 
     # If everything fails, return this as the static fallback
     return "meta-llama/llama-4-scout-17b-16e-instruct"
 
 # Model settings
 LLM_MODEL = get_valid_groq_model()
-print(f"🔧 LLM_MODEL = {LLM_MODEL}")
+print(f"[INFO] LLM_MODEL = {LLM_MODEL}")
 
 
 # Job search settings
