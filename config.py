@@ -12,12 +12,12 @@ import requests
 # Priority list of models to try, ordered by preference (largest context first)
 # These are the models known to work on Groq free tier as of 2026
 _MODEL_PRIORITY = [
-    "meta-llama/llama-4-scout-17b-16e-instruct",  # 131K context
-    "qwen/qwen3-32b",                              # 32K context
-    "mistral-saba-24b",                             # 32K context
-    "llama-3.3-70b-versatile",                      # 128K context
-    "llama-3.1-8b-instant",                         # 128K context (deprecated but try)
-    "openai/gpt-oss-20b",                           # 16K context
+    "qwen/qwen3.8-27b",                              # Reliable, tested working
+    "meta-llama/llama-4-scout-17b-16e-instruct",      # 131K context
+    "qwen/qwen3-32b",                                 # 32K context
+    "mistral-saba-24b",                               # 32K context
+    "llama-3.3-70b-versatile",                        # 128K context
+    "llama-3.1-8b-instant",                           # 128K context
 ]
 
 def get_valid_groq_model():
@@ -43,7 +43,7 @@ def get_valid_groq_model():
                         return model_id
 
                 # 2. Fallback: pick the first chat model that's NOT a whisper/tts/image model
-                skip_prefixes = ("whisper", "distil-whisper", "playai", "orpheus", "compound")
+                skip_prefixes = ("whisper", "distil-whisper", "playai", "orpheus", "compound", "openai/gpt-oss", "allam", "llama-prompt-guard")
                 for m in models:
                     mid = m["id"]
                     if not any(mid.startswith(p) for p in skip_prefixes):
